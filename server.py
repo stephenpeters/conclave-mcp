@@ -34,6 +34,8 @@ from config import (
     get_rotation_info,
     estimate_cost,
     validate_council_size,
+    get_council_by_tier,
+    get_tier_info,
 )
 from council import (
     run_council_quick,
@@ -60,13 +62,20 @@ async def list_tools() -> list[Tool]:
 Fast and cheap - queries all council models in parallel and returns their individual responses.
 No peer ranking or synthesis. Good for getting diverse perspectives quickly.
 
-Cost: ~$0.01-0.03 per query""",
+Use 'tier' to select model quality: "premium" (frontier), "standard" (default), "budget" (cheap/fast)
+
+Cost: budget ~$0.01, standard ~$0.02, premium ~$0.10 per query""",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "question": {
                         "type": "string",
                         "description": "The question to ask the council",
+                    },
+                    "tier": {
+                        "type": "string",
+                        "enum": ["premium", "standard", "budget"],
+                        "description": "Model tier: premium (complex), standard (default), budget (simple)",
                     },
                 },
                 "required": ["question"],
@@ -80,13 +89,20 @@ Medium cost - gets individual opinions, then has each model anonymously evaluate
 and rank all responses. Returns aggregate "street cred" scores showing which
 models performed best on this specific question.
 
-Cost: ~$0.05-0.10 per query""",
+Use 'tier' to select model quality: "premium" (frontier), "standard" (default), "budget" (cheap/fast)
+
+Cost: budget ~$0.03, standard ~$0.08, premium ~$0.25 per query""",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "question": {
                         "type": "string",
                         "description": "The question to ask the council",
+                    },
+                    "tier": {
+                        "type": "string",
+                        "enum": ["premium", "standard", "budget"],
+                        "description": "Model tier: premium (complex), standard (default), budget (simple)",
                     },
                 },
                 "required": ["question"],
@@ -99,16 +115,24 @@ Cost: ~$0.05-0.10 per query""",
 Most comprehensive - collects opinions, peer rankings, then has a Chairman model
 synthesize the best possible answer from the collective wisdom.
 
-Use 'chairman' to override the chairman model, or 'chairman_preset' for context-based
+Use 'tier' for model quality: "premium" (frontier models for complex questions),
+"standard" (default), "budget" (cheap/fast for simple questions)
+
+Use 'chairman' to override chairman model, or 'chairman_preset' for context-based
 selection: "code", "creative", "reasoning", "concise", "balanced"
 
-Cost: ~$0.10-0.20 per query""",
+Cost: budget ~$0.05, standard ~$0.15, premium ~$0.40 per query""",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "question": {
                         "type": "string",
                         "description": "The question to ask the council",
+                    },
+                    "tier": {
+                        "type": "string",
+                        "enum": ["premium", "standard", "budget"],
+                        "description": "Model tier: premium (complex), standard (default), budget (simple)",
                     },
                     "chairman": {
                         "type": "string",
@@ -194,7 +218,8 @@ async def handle_config() -> list[TextContent]:
 
     config = {
         "api_key_configured": bool(OPENROUTER_API_KEY),
-        "council_models": COUNCIL_MODELS,
+        "tiers": get_tier_info(),
+        "active_council": COUNCIL_MODELS,
         "council_size": {
             "total_members": size_validation["total_size"],
             "is_odd": size_validation["valid"],
@@ -252,6 +277,7 @@ async def handle_estimate(arguments: dict) -> list[TextContent]:
 async def handle_quick(arguments: dict) -> list[TextContent]:
     """Run quick council (Stage 1 only)."""
     question = arguments.get("question")
+    tier = arguments.get("tier", "standard")
 
     if not question:
         return [TextContent(type="text", text="Error: 'question' is required")]
@@ -259,8 +285,12 @@ async def handle_quick(arguments: dict) -> list[TextContent]:
     if not OPENROUTER_API_KEY:
         return [TextContent(type="text", text="Error: OPENROUTER_API_KEY not configured")]
 
+    # Get models for selected tier
+    models = get_council_by_tier(tier)
+
     try:
-        result = await run_council_quick(question)
+        result = await run_council_quick(question, models=models)
+        result["tier"] = tier
         return [TextContent(type="text", text=format_quick_result(result))]
     except Exception as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]
@@ -269,6 +299,7 @@ async def handle_quick(arguments: dict) -> list[TextContent]:
 async def handle_ranked(arguments: dict) -> list[TextContent]:
     """Run ranked council (Stage 1 + 2)."""
     question = arguments.get("question")
+    tier = arguments.get("tier", "standard")
 
     if not question:
         return [TextContent(type="text", text="Error: 'question' is required")]
@@ -276,8 +307,12 @@ async def handle_ranked(arguments: dict) -> list[TextContent]:
     if not OPENROUTER_API_KEY:
         return [TextContent(type="text", text="Error: OPENROUTER_API_KEY not configured")]
 
+    # Get models for selected tier
+    models = get_council_by_tier(tier)
+
     try:
-        result = await run_council_ranked(question)
+        result = await run_council_ranked(question, models=models)
+        result["tier"] = tier
         return [TextContent(type="text", text=format_ranked_result(result))]
     except Exception as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]
@@ -286,6 +321,7 @@ async def handle_ranked(arguments: dict) -> list[TextContent]:
 async def handle_full(arguments: dict) -> list[TextContent]:
     """Run full council (all 3 stages)."""
     question = arguments.get("question")
+    tier = arguments.get("tier", "standard")
     chairman = arguments.get("chairman")
     chairman_preset = arguments.get("chairman_preset")
 
@@ -295,12 +331,17 @@ async def handle_full(arguments: dict) -> list[TextContent]:
     if not OPENROUTER_API_KEY:
         return [TextContent(type="text", text="Error: OPENROUTER_API_KEY not configured")]
 
+    # Get models for selected tier
+    models = get_council_by_tier(tier)
+
     try:
         result = await run_council_full(
             question,
+            models=models,
             chairman=chairman,
             chairman_preset=chairman_preset,
         )
+        result["tier"] = tier
         return [TextContent(type="text", text=format_full_result(result))]
     except Exception as e:
         return [TextContent(type="text", text=f"Error: {str(e)}")]

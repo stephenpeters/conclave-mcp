@@ -16,28 +16,48 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # =============================================================================
-# COUNCIL MEMBERS
+# COUNCIL TIERS
 # =============================================================================
 
-# Models that participate in the council (Stage 1 opinions + Stage 2 rankings)
-# IMPORTANT: Total council size (members + chairman) must be ODD for tiebreaker votes
-# By default, chairman is NOT in council (4 members + 1 separate chairman = 5, odd)
-# Add/remove models as needed. More models = more diverse opinions but higher cost.
+# Premium council for complex questions (architecture, important decisions)
+# 6 frontier models + 1 chairman = 7 (odd)
+COUNCIL_PREMIUM = [
+    "google/gemini-2.5-pro-preview-06-05",  # Gemini 3 Pro preview
+    "anthropic/claude-sonnet-4-5-20250514", # Claude Sonnet 4.5
+    "openai/gpt-5.1",                       # GPT 5.1
+    "x-ai/grok-4-0414",                     # Grok 4.1
+    "moonshotai/kimi-k2",                   # Kimi K2 (K3 when available)
+    "deepseek/deepseek-r1",                 # DeepSeek R1 reasoning
+]
 
-COUNCIL_MODELS = [
+# Standard council for typical questions (default)
+# 4 models + 1 chairman = 5 (odd)
+COUNCIL_STANDARD = [
     "openai/gpt-4.1",
     "anthropic/claude-sonnet-4",
     "google/gemini-2.5-pro",
     "moonshotai/kimi-k2",
 ]
 
-# Budget-friendly alternative council (uncomment to use)
-# COUNCIL_MODELS = [
-#     "deepseek/deepseek-chat",
-#     "google/gemini-2.5-flash",
-#     "moonshotai/kimi-k2",
-#     "qwen/qwen3-32b",
-# ]
+# Budget council for simple questions (quick checks, brainstorming)
+# 4 cheap/fast models + 1 chairman = 5 (odd)
+COUNCIL_BUDGET = [
+    "anthropic/claude-3-5-haiku-20241022",  # Claude Haiku
+    "google/gemini-2.5-flash",              # Gemini Flash
+    "deepseek/deepseek-chat",               # DeepSeek (very cheap)
+    "qwen/qwen3-32b",                       # Qwen 32B
+]
+
+# Active council (change this to switch tiers, or use tier= parameter in tools)
+COUNCIL_MODELS = COUNCIL_STANDARD
+
+# =============================================================================
+# COUNCIL MEMBERS (Legacy - use COUNCIL_TIERS above)
+# =============================================================================
+
+# Models that participate in the council (Stage 1 opinions + Stage 2 rankings)
+# IMPORTANT: Total council size (members + chairman) must be ODD for tiebreaker votes
+# By default, chairman is NOT in council (4 members + 1 separate chairman = 5, odd)
 
 # =============================================================================
 # CONSENSUS CONFIGURATION
@@ -333,4 +353,50 @@ def get_recommended_council_size(current_count: int, chairman_in_council: bool) 
             f"Remove 1 model from council (total: {total - 1})" if current_count > 2 else None,
             "Include chairman in council models" if not chairman_in_council else None,
         ],
+    }
+
+
+# =============================================================================
+# COUNCIL TIER SELECTION
+# =============================================================================
+
+def get_council_by_tier(tier: str = "standard") -> list[str]:
+    """
+    Get council models by tier name.
+
+    Args:
+        tier: "premium", "standard", or "budget"
+
+    Returns:
+        List of model IDs for that tier
+    """
+    tiers = {
+        "premium": COUNCIL_PREMIUM,
+        "standard": COUNCIL_STANDARD,
+        "budget": COUNCIL_BUDGET,
+    }
+    return tiers.get(tier.lower(), COUNCIL_STANDARD)
+
+
+def get_tier_info() -> dict:
+    """Get information about available council tiers."""
+    return {
+        "premium": {
+            "models": COUNCIL_PREMIUM,
+            "count": len(COUNCIL_PREMIUM),
+            "description": "Frontier models for complex questions",
+            "estimated_cost": "~$0.30-0.50 per full query",
+        },
+        "standard": {
+            "models": COUNCIL_STANDARD,
+            "count": len(COUNCIL_STANDARD),
+            "description": "Balanced models for typical questions",
+            "estimated_cost": "~$0.10-0.20 per full query",
+        },
+        "budget": {
+            "models": COUNCIL_BUDGET,
+            "count": len(COUNCIL_BUDGET),
+            "description": "Fast/cheap models for simple questions",
+            "estimated_cost": "~$0.02-0.05 per full query",
+        },
     }
