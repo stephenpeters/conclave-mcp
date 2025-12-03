@@ -20,32 +20,35 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 # =============================================================================
 
 # Premium council for complex questions (architecture, important decisions)
-# 6 frontier models + 1 chairman = 7 (odd)
+# 6 frontier reasoning models + 1 chairman = 7 (odd)
+# Updated December 2025 with latest reasoning models
 COUNCIL_PREMIUM = [
-    "google/gemini-2.5-pro-preview-06-05",  # Gemini 3 Pro preview
-    "anthropic/claude-sonnet-4-5-20250514", # Claude Sonnet 4.5
-    "openai/gpt-5.1",                       # GPT 5.1
-    "x-ai/grok-4-0414",                     # Grok 4.1
-    "moonshotai/kimi-k2",                   # Kimi K2 (K3 when available)
-    "deepseek/deepseek-r1",                 # DeepSeek R1 reasoning
+    "anthropic/claude-opus-4.5",             # Claude Opus 4.5 (frontier reasoning)
+    "openai/gpt-5.1",                        # GPT 5.1 (adaptive reasoning)
+    "x-ai/grok-4",                           # Grok 4 (256k context, reasoning)
+    "google/gemini-2.5-pro",                 # Gemini 2.5 Pro with thinking
+    "deepseek/deepseek-r1-0528",             # DeepSeek R1 (May 2025 update)
+    "anthropic/claude-sonnet-4.5",           # Claude Sonnet 4.5 (fast frontier)
 ]
 
 # Standard council for typical questions (default)
 # 4 models + 1 chairman = 5 (odd)
+# Updated December 2025
 COUNCIL_STANDARD = [
-    "openai/gpt-4.1",
-    "anthropic/claude-sonnet-4",
-    "google/gemini-2.5-pro",
-    "moonshotai/kimi-k2",
+    "anthropic/claude-4-sonnet-20250522",   # Claude 4 Sonnet (May 2025)
+    "openai/o3-mini",                        # OpenAI o3-mini reasoning
+    "google/gemini-2.5-pro",                 # Gemini 2.5 Pro
+    "deepseek/deepseek-r1",                  # DeepSeek R1 reasoning
 ]
 
 # Budget council for simple questions (quick checks, brainstorming)
 # 4 cheap/fast models + 1 chairman = 5 (odd)
+# Updated December 2025
 COUNCIL_BUDGET = [
-    "anthropic/claude-3-5-haiku-20241022",  # Claude Haiku
-    "google/gemini-2.5-flash",              # Gemini Flash
-    "deepseek/deepseek-chat",               # DeepSeek (very cheap)
-    "qwen/qwen3-32b",                       # Qwen 32B
+    "google/gemini-2.5-flash",              # Gemini 2.5 Flash (fast)
+    "deepseek/deepseek-chat-v3-0324:free",  # DeepSeek Chat V3 (free)
+    "openai/gpt-4.1-mini",                  # GPT-4.1 Mini (cheap)
+    "qwen/qwen3-32b",                       # Qwen 3 32B
 ]
 
 # Active council (change this to switch tiers, or use tier= parameter in tools)
@@ -116,16 +119,31 @@ CHAIRMAN_PRESETS = {
 # =============================================================================
 
 # Input/output costs for estimation (update as pricing changes)
+# Updated December 2025
 MODEL_COSTS = {
     # Format: "model": (input_per_1k, output_per_1k)
-    "openai/gpt-4.1": (0.002, 0.008),
-    "anthropic/claude-sonnet-4": (0.003, 0.015),
+    # Premium tier
+    "anthropic/claude-opus-4.5": (0.005, 0.025),       # Opus 4.5 frontier
+    "anthropic/claude-sonnet-4.5": (0.003, 0.015),    # Sonnet 4.5
+    "openai/gpt-5.1": (0.005, 0.015),                 # GPT 5.1 adaptive reasoning
+    "x-ai/grok-4": (0.003, 0.015),                    # Grok 4 reasoning
+    "openai/o4-mini": (0.0011, 0.0044),
+    "openai/o3-mini": (0.0011, 0.0044),
+    "deepseek/deepseek-r1-0528": (0.00055, 0.00219),
+    "deepseek/deepseek-r1": (0.00055, 0.00219),
+    # Standard tier
+    "anthropic/claude-4-sonnet-20250522": (0.003, 0.015),
     "google/gemini-2.5-pro": (0.00125, 0.01),
+    # Budget tier
     "google/gemini-2.5-flash": (0.00015, 0.0006),
-    "moonshotai/kimi-k2": (0.0006, 0.0024),
-    "deepseek/deepseek-chat": (0.00014, 0.00028),
+    "deepseek/deepseek-chat-v3-0324:free": (0.0, 0.0),  # Free tier
+    "openai/gpt-4.1-mini": (0.0004, 0.0016),
     "qwen/qwen3-32b": (0.0003, 0.0003),
+    # Chairman pool
+    "deepseek/deepseek-chat": (0.00014, 0.00028),
     "x-ai/grok-3": (0.003, 0.015),
+    "mistralai/mistral-large-2": (0.002, 0.006),
+    "qwen/qwen3-235b-a22b": (0.0003, 0.0003),
 }
 
 # Default cost for unknown models
