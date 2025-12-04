@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "conclave": {
+      "command": "/path/to/conclave/.venv/bin/python",
+      "args": ["/path/to/conclave/server.py"],
+      "env": {
+        "OPENROUTER_API_KEY": "sk-or-v1-your-key-here"
+      }
+    }
+  }
+}

@@ -48,3 +48,7 @@ Thumbs.db
 
 # Project specific
 .claude/
+.mcp.json
+conclave_scores.json
+conclave_scores_archive_*.json
+evals/

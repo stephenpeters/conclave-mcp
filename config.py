@@ -1,7 +1,7 @@
 """
-LLM Council MCP Server Configuration
+Conclave MCP Server Configuration
 
-Customize your council members, chairman rotation, and cost controls here.
+Customize your conclave members, chairman rotation, and cost controls here.
 """
 
 import os
@@ -21,34 +21,35 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Premium council for complex questions (architecture, important decisions)
 # 6 frontier reasoning models + 1 chairman = 7 (odd)
-# Updated December 2025 with latest reasoning models
+# Updated December 4, 2025 with latest frontier models
+# NOTE: Each tier has UNIQUE models - no overlap between tiers
 COUNCIL_PREMIUM = [
-    "anthropic/claude-opus-4.5",             # Claude Opus 4.5 (frontier reasoning)
-    "openai/gpt-5.1",                        # GPT 5.1 (adaptive reasoning)
-    "x-ai/grok-4",                           # Grok 4 (256k context, reasoning)
-    "google/gemini-2.5-pro",                 # Gemini 2.5 Pro with thinking
-    "deepseek/deepseek-r1-0528",             # DeepSeek R1 (May 2025 update)
-    "anthropic/claude-sonnet-4.5",           # Claude Sonnet 4.5 (fast frontier)
+    "anthropic/claude-opus-4.5",             # Claude Opus 4.5 (Nov 2025, 80.9% SWE-bench)
+    "google/gemini-3-pro-preview",           # Gemini 3 Pro (Nov 2025, #1 LMArena 1501 Elo)
+    "x-ai/grok-4.1",                         # Grok 4.1 (full reasoning, not fast variant)
+    "openai/gpt-5.1",                        # GPT-5.1 (flagship reasoning)
+    "deepseek/deepseek-v3.2-speciale",       # DeepSeek V3.2 Speciale (IMO gold, highest compute)
+    "moonshotai/kimi-k2-thinking",           # Kimi K2 Thinking (1T MoE, 256k context, agentic)
 ]
 
 # Standard council for typical questions (default)
 # 4 models + 1 chairman = 5 (odd)
-# Updated December 2025
+# Updated December 4, 2025
 COUNCIL_STANDARD = [
-    "anthropic/claude-4-sonnet-20250522",   # Claude 4 Sonnet (May 2025)
-    "openai/o3-mini",                        # OpenAI o3-mini reasoning
-    "google/gemini-2.5-pro",                 # Gemini 2.5 Pro
-    "deepseek/deepseek-r1",                  # DeepSeek R1 reasoning
+    "anthropic/claude-sonnet-4.5",           # Claude Sonnet 4.5 (1M context)
+    "google/gemini-2.5-pro",                 # Gemini 2.5 Pro (still excellent)
+    "openai/o4-mini",                        # OpenAI o4-mini (best reasoning/cost)
+    "deepseek/deepseek-v3.1",                # DeepSeek V3.1 Terminus (agent-era model)
 ]
 
 # Budget council for simple questions (quick checks, brainstorming)
 # 4 cheap/fast models + 1 chairman = 5 (odd)
-# Updated December 2025
+# Updated December 4, 2025
 COUNCIL_BUDGET = [
-    "google/gemini-2.5-flash",              # Gemini 2.5 Flash (fast)
-    "deepseek/deepseek-chat-v3-0324:free",  # DeepSeek Chat V3 (free)
-    "openai/gpt-4.1-mini",                  # GPT-4.1 Mini (cheap)
-    "qwen/qwen3-32b",                       # Qwen 3 32B
+    "google/gemini-2.5-flash",               # Gemini 2.5 Flash (fast, cheap)
+    "x-ai/grok-4.1-fast:free",               # Grok 4.1 Fast free tier
+    "openai/gpt-4.1-mini",                   # GPT-4.1 Mini (cheap)
+    "deepseek/deepseek-chat-v3-0324:free",   # DeepSeek Chat V3 (free)
 ]
 
 # Active council (change this to switch tiers, or use tier= parameter in tools)
@@ -119,20 +120,28 @@ CHAIRMAN_PRESETS = {
 # =============================================================================
 
 # Input/output costs for estimation (update as pricing changes)
-# Updated December 2025
+# Updated December 4, 2025
 MODEL_COSTS = {
     # Format: "model": (input_per_1k, output_per_1k)
-    # Premium tier
-    "anthropic/claude-opus-4.5": (0.005, 0.025),       # Opus 4.5 frontier
+    # Premium tier (Dec 2025 frontier)
+    "anthropic/claude-opus-4.5": (0.005, 0.025),       # Opus 4.5 (Nov 2025)
+    "google/gemini-3-pro-preview": (0.00125, 0.01),   # Gemini 3 Pro (Nov 2025)
+    "x-ai/grok-4.1": (0.003, 0.015),                  # Grok 4.1 full (reasoning)
+    "openai/gpt-5.1": (0.005, 0.015),                 # GPT 5.1 (flagship)
+    "deepseek/deepseek-v3.2-speciale": (0.0003, 0.0006),  # V3.2 Speciale (high compute)
+    "moonshotai/kimi-k2-thinking": (0.0006, 0.002),   # Kimi K2 Thinking (1T MoE)
+    # Standard tier
     "anthropic/claude-sonnet-4.5": (0.003, 0.015),    # Sonnet 4.5
-    "openai/gpt-5.1": (0.005, 0.015),                 # GPT 5.1 adaptive reasoning
-    "x-ai/grok-4": (0.003, 0.015),                    # Grok 4 reasoning
-    "openai/o4-mini": (0.0011, 0.0044),
-    "openai/o3-mini": (0.0011, 0.0044),
+    "google/gemini-2.5-pro": (0.00125, 0.01),         # Gemini 2.5 Pro
+    "deepseek/deepseek-v3.1": (0.00014, 0.00028),     # DeepSeek V3.1 Terminus
+    # Budget tier
+    "x-ai/grok-4.1-fast": (0.0002, 0.0005),           # Grok 4.1 Fast (Nov 2025)
+    "x-ai/grok-4.1-fast:free": (0.0, 0.0),            # Grok 4.1 Fast free tier
+    # Standard tier
+    "openai/o4-mini": (0.0011, 0.0044),               # o4-mini (best reasoning/cost)
+    "openai/o3-mini": (0.0011, 0.0044),               # o3-mini
     "deepseek/deepseek-r1-0528": (0.00055, 0.00219),
     "deepseek/deepseek-r1": (0.00055, 0.00219),
-    # Standard tier
-    "anthropic/claude-4-sonnet-20250522": (0.003, 0.015),
     "google/gemini-2.5-pro": (0.00125, 0.01),
     # Budget tier
     "google/gemini-2.5-flash": (0.00015, 0.0006),

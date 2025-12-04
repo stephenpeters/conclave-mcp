@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-LLM Council MCP Server
+Conclave MCP Server
 
-Exposes the LLM Council as MCP tools for use with Claude Desktop/Code.
+Exposes the Conclave (LLM Council) as MCP tools for use with Claude Desktop/Code.
 
 Tools:
-- council_quick: Fast parallel opinions (Stage 1 only)
-- council_ranked: Opinions + peer rankings (Stage 1 + 2)
-- council_full: Complete council with synthesis (all 3 stages)
-- council_config: View/check current configuration
-- council_estimate: Estimate cost before running
+- conclave_quick: Fast parallel opinions (Stage 1 only)
+- conclave_ranked: Opinions + peer rankings (Stage 1 + 2)
+- conclave_full: Complete conclave with synthesis (all 3 stages)
+- conclave_config: View/check current configuration
+- conclave_estimate: Estimate cost before running
 """
 
 import json
@@ -31,14 +31,14 @@ from config import (
     get_council_by_tier,
     get_tier_info,
 )
-from council import (
+from conclave import (
     run_council_quick,
     run_council_ranked,
     run_council_full,
 )
 
 # Initialize FastMCP server
-mcp = FastMCP("llm-council")
+mcp = FastMCP("conclave")
 
 
 # =============================================================================
@@ -46,19 +46,19 @@ mcp = FastMCP("llm-council")
 # =============================================================================
 
 @mcp.tool()
-async def council_quick(question: str, tier: str = "standard") -> str:
-    """Query the LLM council for quick parallel opinions (Stage 1 only).
+async def conclave_quick(question: str, tier: str = "standard") -> str:
+    """Query the conclave for quick parallel opinions (Stage 1 only).
 
-    Fast and cheap - queries all council models in parallel and returns their
+    Fast and cheap - queries all conclave models in parallel and returns their
     individual responses. No peer ranking or synthesis. Good for getting
     diverse perspectives quickly.
 
     Args:
-        question: The question to ask the council
+        question: The question to ask the conclave
         tier: Model tier - "premium" (frontier), "standard" (default), "budget" (cheap/fast)
 
     Returns:
-        Individual responses from each council model
+        Individual responses from each conclave model
     """
     if not question:
         return "Error: 'question' is required"
@@ -80,15 +80,15 @@ async def council_quick(question: str, tier: str = "standard") -> str:
 
 
 @mcp.tool()
-async def council_ranked(question: str, tier: str = "standard") -> str:
-    """Query the LLM council with peer rankings (Stage 1 + 2).
+async def conclave_ranked(question: str, tier: str = "standard") -> str:
+    """Query the conclave with peer rankings (Stage 1 + 2).
 
     Medium cost - gets individual opinions, then has each model anonymously
     evaluate and rank all responses. Returns aggregate "street cred" scores
     showing which models performed best on this specific question.
 
     Args:
-        question: The question to ask the council
+        question: The question to ask the conclave
         tier: Model tier - "premium" (frontier), "standard" (default), "budget" (cheap/fast)
 
     Returns:
@@ -114,19 +114,19 @@ async def council_ranked(question: str, tier: str = "standard") -> str:
 
 
 @mcp.tool()
-async def council_full(
+async def conclave_full(
     question: str,
     tier: str = "standard",
     chairman: Optional[str] = None,
     chairman_preset: Optional[str] = None,
 ) -> str:
-    """Run the full LLM council with synthesis (all 3 stages).
+    """Run the full conclave with synthesis (all 3 stages).
 
     Most comprehensive - collects opinions, peer rankings, then has a Chairman
     model synthesize the best possible answer from the collective wisdom.
 
     Args:
-        question: The question to ask the council
+        question: The question to ask the conclave
         tier: Model tier - "premium" (complex), "standard" (default), "budget" (simple)
         chairman: Override chairman model (e.g., 'anthropic/claude-sonnet-4')
         chairman_preset: Use a context-based preset - "code", "creative", "reasoning", "concise", "balanced"
@@ -162,10 +162,10 @@ async def council_full(
 
 
 @mcp.tool()
-async def council_config() -> str:
-    """View current council configuration.
+async def conclave_config() -> str:
+    """View current conclave configuration.
 
-    Shows council member models, current chairman with rotation info,
+    Shows conclave member models, current chairman with rotation info,
     available chairman presets, consensus thresholds, and API key status.
 
     Returns:
@@ -177,11 +177,11 @@ async def council_config() -> str:
     config = {
         "api_key_configured": bool(OPENROUTER_API_KEY),
         "tiers": get_tier_info(),
-        "active_council": COUNCIL_MODELS,
-        "council_size": {
+        "active_conclave": COUNCIL_MODELS,
+        "conclave_size": {
             "total_members": size_validation["total_size"],
             "is_odd": size_validation["valid"],
-            "chairman_in_council": size_validation["chairman_included"],
+            "chairman_in_conclave": size_validation["chairman_included"],
             "status": size_validation["message"],
         },
         "chairman": {
@@ -199,12 +199,12 @@ async def council_config() -> str:
         "presets": CHAIRMAN_PRESETS,
     }
 
-    return f"## LLM Council Configuration\n\n```json\n{json.dumps(config, indent=2)}\n```"
+    return f"## Conclave Configuration\n\n```json\n{json.dumps(config, indent=2)}\n```"
 
 
 @mcp.tool()
-async def council_estimate(question: str, tier: Optional[str] = None) -> str:
-    """Estimate cost for a council query before running it.
+async def conclave_estimate(question: str, tier: Optional[str] = None) -> str:
+    """Estimate cost for a conclave query before running it.
 
     Provides approximate cost breakdown for quick/ranked/full query types.
 
@@ -242,8 +242,8 @@ async def council_estimate(question: str, tier: Optional[str] = None) -> str:
 # =============================================================================
 
 def format_quick_result(result: dict) -> str:
-    """Format quick council result for display."""
-    output = "## Council Quick Opinions\n\n"
+    """Format quick conclave result for display."""
+    output = "## Conclave Quick Opinions\n\n"
 
     for resp in result["stage1"]:
         model_name = resp["model"].split("/")[-1]  # Just the model name
@@ -253,8 +253,8 @@ def format_quick_result(result: dict) -> str:
 
 
 def format_ranked_result(result: dict) -> str:
-    """Format ranked council result for display."""
-    output = "## Council Opinions with Rankings\n\n"
+    """Format ranked conclave result for display."""
+    output = "## Conclave Opinions with Rankings\n\n"
 
     # Stage 1 responses
     output += "### Individual Responses\n\n"
@@ -276,8 +276,8 @@ def format_ranked_result(result: dict) -> str:
 
 
 def format_full_result(result: dict) -> str:
-    """Format full council result for display."""
-    output = "## Council Full Result\n\n"
+    """Format full conclave result for display."""
+    output = "## Conclave Full Result\n\n"
 
     # Consensus status badge
     consensus = result.get("consensus", {})

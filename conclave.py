@@ -1,8 +1,8 @@
 """
-LLM Council Core Logic
+Conclave Core Logic
 
-Handles the 3-stage council process:
-1. Collect individual opinions from all council models
+Handles the 3-stage conclave process:
+1. Collect individual opinions from all conclave models
 2. Peer ranking with anonymized responses
 3. Chairman synthesis of final answer
 """

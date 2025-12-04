@@ -1,11 +1,11 @@
 [project]
-name = "council-mcp"
-version = "0.1.0"
-description = "MCP server providing democratic AI consensus from multiple LLM models for use with Claude and other MCP-compatible editors"
+name = "conclave-mcp"
+version = "0.2.0"
+description = "MCP server providing democratic AI consensus from multiple LLM models. Consult a conclave of frontier models for diverse opinions, peer-ranked evaluations, and synthesized answers."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-keywords = ["mcp", "llm", "council", "ai", "claude", "openrouter"]
+keywords = ["mcp", "llm", "conclave", "council", "ai", "claude", "openrouter", "consensus"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -22,11 +22,11 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/stephenpeters/council-mcp"
-Repository = "https://github.com/stephenpeters/council-mcp"
+Homepage = "https://github.com/stephenpeters/conclave-mcp"
+Repository = "https://github.com/stephenpeters/conclave-mcp"
 
 [project.scripts]
-council-mcp = "server:main"
+conclave-mcp = "server:main"
 
 [build-system]
 requires = ["hatchling"]

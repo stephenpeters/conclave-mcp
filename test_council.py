@@ -50,7 +50,7 @@ print(f"✓ Estimated cost (full council): ${est['total']:.4f}")
 
 # Test actual API call (optional - costs money)
 async def test_quick_query():
-    from council import run_council_quick
+    from conclave import run_council_quick
 
     print("\n--- Testing council_quick (will call OpenRouter API) ---")
     print("Question: What is 2+2?")
